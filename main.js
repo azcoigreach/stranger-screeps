@@ -53,6 +53,53 @@
 	EXCESS = 13;
 }
 
+// InterShardMemory functions
+function getInterShardData() {
+    const rawData = InterShardMemory.getLocal();
+    return rawData ? JSON.parse(rawData) : {};
+}
+
+function setInterShardData(data) {
+    InterShardMemory.setLocal(JSON.stringify(data));
+}
+
+function synchronizeData() {
+    const shardName = Game.shard.name;
+    let data = getInterShardData();
+
+    // Initialize shard data if not present
+    if (!data[shardName]) {
+        data[shardName] = {
+            colonies: {},
+            creeps: {},
+            resources: {}
+        };
+    }
+
+    // Update shard-specific data
+    data[shardName].colonies = getColoniesData();
+    data[shardName].creeps = getCreepsData();
+    data[shardName].resources = getResourcesData();
+
+    // Set updated data to inter-shard memory
+    setInterShardData(data);
+}
+
+function getColoniesData() {
+    // Implement logic to gather colony data
+    return {};
+}
+
+function getCreepsData() {
+    // Implement logic to gather creep data
+    return {};
+}
+
+function getResourcesData() {
+    // Implement logic to gather resource data
+    return {};
+}
+
 getUsername = function () {
 	return _.find({...Game.structures, ...Game.creeps, ...Game.constructionSites}).owner.username;
 }
@@ -8223,6 +8270,14 @@ let Stats_Grafana = {
 
 
 module.exports.loop = function () {
+
+	// Synchronize data between shards
+    synchronizeData();
+
+    // Log shard information
+    console.log(`Current Shard: ${Game.shard.name}`);
+    console.log(`InterShardMemory Data: ${JSON.stringify(getInterShardData())}`);
+
 
 	Stats_CPU.Init();
 
